@@ -1,8 +1,8 @@
 {
   "name": "inventory",
   "version": "1.0.0",
-  "description": "server for inventory app",
-  "main": "index.js",
+  "description": "backend for inventory app",
+  "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js",
