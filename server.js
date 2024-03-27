@@ -17,7 +17,7 @@ app.use(express.json());
 app.use(cors());
 
 app.use((req, res, next) => {
-  console.log(req.path, req.method);
+  console.log(req.path, req.method.red);
   next();
 });
 
@@ -31,7 +31,7 @@ mongoose
   .then(() => {
     console.log(`MongoDB Connected`.cyan.underline.bold);
     app.listen(port, () => {
-      console.log(`Server running on port ${port}`.yellow);
+      console.log(`Server running on port ${port}`.blue);
     });
   })
   .catch((error) => {
