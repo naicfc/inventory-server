@@ -5,7 +5,7 @@ const createToken = (_id) => {
   return jwt.sign({ _id }, process.env.SECRET, { expiresIn: "3d" });
 };
 
-const loginUser = async (req, res) => {
+const loginUser = async (req, res, next) => {
   const { email, password } = req.body;
 
   try {
@@ -15,11 +15,12 @@ const loginUser = async (req, res) => {
 
     res.status(200).json({ email, token });
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    error.statusCode = 400;
+    next(error);
   }
 };
 
-const signupUser = async (req, res) => {
+const signupUser = async (req, res, next) => {
   const { email, password } = req.body;
 
   try {
@@ -29,7 +30,8 @@ const signupUser = async (req, res) => {
 
     res.status(200).json({ email, token });
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    error.statusCode = 400;
+    next(error);
   }
 };
 

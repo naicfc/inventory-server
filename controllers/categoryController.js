@@ -1,55 +1,67 @@
 const Category = require("../models/category");
 const mongoose = require("mongoose");
 
-const addCategory = async (req, res) => {
+const addCategory = async (req, res, next) => {
   const { name, description } = req.body;
 
   try {
-    const category = await Category.add(name, description);
+    if (!name || !description) {
+      throw Error("All fields must be present");
+    }
 
-    res.status(200).json(category);
+    const exists = await Category.findOne({ name });
+
+    if (exists) {
+      throw Error("Category already exists");
+    }
+
+    const category = await Category.create({ name, description });
+
+    res.status(201).json(category);
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    error.statusCode = 400;
+    next(error);
   }
 };
 
-const getCategories = async (req, res) => {
+const getCategories = async (req, res, next) => {
   try {
-    const categories = await Category.getAll();
+    const categories = await Category.find({});
 
     res.status(200).json(categories);
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    next(error);
   }
 };
 
-const getOneCategory = async (req, res) => {
+const getOneCategory = async (req, res, next) => {
   const { id } = req.params;
 
-  try {
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      res.status(404).json({ error: "Category does not exist" });
-    }
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    res.status(404).json({ error: "Category does not exist" });
+  }
 
-    const category = await Category.getOne(id);
+  try {
+    const category = await Category.findById(id);
 
     if (!category) {
       return res.status(404).json({ error: "Category does not exist" });
     }
     res.status(200).json({ category });
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    next(error);
   }
 };
 
-const deleteCategory = async (req, res) => {
+const deleteCategory = async (req, res, next) => {
   const { id } = req.params;
-  try {
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      res.status(404).json({ error: "Category does not exist" });
-    }
 
-    const category = await Category.delete(id);
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    res.status(404).json({ error: "Category does not exist" });
+  }
+
+  try {
+    const category = await Category.findOneAndDelete({ _id: id });
 
     if (!category) {
       return res.status(404).json({ error: "Category does not exist" });
@@ -57,17 +69,18 @@ const deleteCategory = async (req, res) => {
 
     res.status(200).json({ category });
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    next(error);
   }
 };
-const updateCategory = async (req, res) => {
+
+const updateCategory = async (req, res, next) => {
   const { id } = req.params;
   try {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       res.status(404).json({ error: "Category does not exist" });
     }
 
-    const category = await Category.update(id, req.body);
+    const category = await Category.findOneAndUpdate({ _id: id }, { ...data }, { new: true });
 
     if (!category) {
       return res.status(404).json({ error: "Category does not exist" });
@@ -75,7 +88,7 @@ const updateCategory = async (req, res) => {
 
     res.status(200).json(category);
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    next(error);
   }
 };
 
