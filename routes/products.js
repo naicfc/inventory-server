@@ -1,40 +1,25 @@
 const express = require("express");
+const requireAuth = require("../middleware/requireAuth");
+const {
+  addProduct,
+  getProducts,
+  getOneProduct,
+  deleteProduct,
+  updateProduct,
+} = require("../controllers/productController");
 
 const router = express.Router();
 
-router.get("/", (req, res) => {
-  res.json({
-    products: [
-      { id: 1, name: "mango" },
-      { id: 2, name: "banana" },
-      { id: 3, name: "pear" },
-      { id: 4, name: "apple" },
-    ],
-  });
-});
+//router.use(requireAuth);
 
-router.get("/:id", (req, res) => {
-  res.json({
-    message: "Get single product",
-  });
-});
+router.get("/", getProducts);
 
-router.post("/", (req, res) => {
-  res.json({
-    message: "create a new product",
-  });
-});
+router.get("/:id", getOneProduct);
 
-router.delete("/:id", (req, res) => {
-  res.json({
-    message: "delete a product",
-  });
-});
+router.post("/", addProduct);
 
-router.patch("/:id", (req, res) => {
-  res.json({
-    message: "update a product",
-  });
-});
+router.delete("/:id", deleteProduct);
+
+router.patch("/:id", updateProduct);
 
 module.exports = router;
