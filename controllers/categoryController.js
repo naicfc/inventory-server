@@ -17,7 +17,7 @@ const addCategory = async (req, res, next) => {
 
     const category = await Category.create({ name, description });
 
-    res.status(201).json(category);
+    res.status(200).json(category);
   } catch (error) {
     error.statusCode = 400;
     next(error);

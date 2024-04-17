@@ -2,7 +2,19 @@ const Product = require("../models/product");
 const mongoose = require("mongoose");
 
 const addProduct = async (req, res, next) => {
-  const { name, description, quantity, barcode, categoryID, unitPrices, defaultUnit } = req.body;
+  const {
+    name,
+    description,
+    quantity,
+    barcode,
+    categoryID,
+    unitPrices,
+    defaultUnit,
+    wholesaleUnit,
+    conversionRate,
+    discountPercentage,
+    batches,
+  } = req.body;
 
   try {
     if (!name || !description) {
@@ -23,21 +35,21 @@ const addProduct = async (req, res, next) => {
       categoryID,
       unitPrices,
       defaultUnit,
+      wholesaleUnit,
+      conversionRate,
+      discountPercentage,
+      batches,
     });
 
-    res.status(201).json(product);
+    res.status(200).json(product);
   } catch (error) {
-    error.statusCode = 400;
     next(error);
   }
 };
 
 const getProducts = async (req, res, next) => {
   try {
-    const products = await Product.find({})
-      .populate("categoryID", "name")
-      .populate("defaultUnit", "name")
-      .exec();
+    const products = await Product.find({}).populate("categoryID", "name").exec();
 
     if (!products) {
       throw new Error("Products not found");
@@ -57,10 +69,7 @@ const getOneProduct = async (req, res, next) => {
   }
 
   try {
-    const product = await Product.findById(id)
-      .populate("categoryID", "name")
-      .populate("defaultUnit", "name")
-      .exec();
+    const product = await Product.findById(id).populate("categoryID", "name").exec();
 
     if (!product) {
       throw new Error("Product not found");
@@ -110,4 +119,44 @@ const updateProduct = async (req, res, next) => {
   }
 };
 
-module.exports = { addProduct, getProducts, getOneProduct, deleteProduct, updateProduct };
+const addBatchToProduct = async (req, res, next) => {
+  const { id } = req.params;
+  const { batchNumber, quantity, expiryDate } = req.body;
+
+  try {
+    const product = await Product.findById(id);
+
+    if (!product) {
+      return res.status(404).json({ error: "Product not found" });
+    }
+
+    product.batches.filter((element) => {
+      if (element.batchNumber == batchNumber) {
+        return res.status(404).json({ error: "Batch name already exists" });
+      }
+    });
+
+    const newBatch = {
+      batchNumber,
+      quantity,
+      expiryDate,
+    };
+
+    product.batches.push(newBatch);
+
+    const updatedProduct = await product.save();
+
+    res.status(200).json(updatedProduct);
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = {
+  addProduct,
+  getProducts,
+  getOneProduct,
+  deleteProduct,
+  updateProduct,
+  addBatchToProduct,
+};
