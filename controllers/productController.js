@@ -1,5 +1,6 @@
 const Product = require("../models/product");
 const mongoose = require("mongoose");
+const { logActivity } = require("../controllers/activityController");
 
 const addProduct = async (req, res, next) => {
   const {
@@ -102,15 +103,18 @@ const deleteProduct = async (req, res, next) => {
 
 const updateProduct = async (req, res, next) => {
   const { id } = req.params;
+  const data = req.body;
+
+  console.log(data);
   try {
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      res.status(404).json({ error: "Product does not exist" });
+      return res.status(404).json({ error: "Invalid product ID" });
     }
 
     const product = await Product.findOneAndUpdate({ _id: id }, { ...data }, { new: true });
 
     if (!product) {
-      return res.status(404).json({ error: "Category does not exist" });
+      return res.status(404).json({ error: "Product not found" });
     }
 
     res.status(200).json(product);

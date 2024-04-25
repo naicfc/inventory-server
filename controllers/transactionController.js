@@ -1,25 +1,29 @@
 const Transaction = require("../models/transaction");
 const mongoose = require("mongoose");
 const Product = require("../models/product");
+const { logActivity } = require("../controllers/activityController");
 
 const createTransaction = async (req, res, next) => {
   try {
-    const { products, subTotal, discount, VAT } = req.body;
+    const { products, subTotal, discount, VAT, userID, total } = req.body;
 
     const transaction = new Transaction({
       transactionType: "sale",
       productDetails: products,
-      totalPrice: req.body.total,
+      totalPrice: total,
       paymentMethod: req.body.paymentMethod,
       subTotal,
       discount,
       VAT,
       status: "completed",
+      user: userID,
     });
 
     await updateProductQuantities(products);
 
     const savedTransaction = await transaction.save();
+
+    await logActivity(userID, "Sale", `User processed a transaction of GHC ${total}.`);
 
     res.status(200).json({
       success: true,
@@ -33,7 +37,7 @@ const createTransaction = async (req, res, next) => {
 
 const updateProductQuantities = async (productDetails) => {
   for (const productDetail of productDetails) {
-    const { productId, batchNumber, quantity } = productDetail;
+    const { productId, batchNumber, quantity, type } = productDetail;
 
     const product = await Product.findById(productId);
 
@@ -47,7 +51,11 @@ const updateProductQuantities = async (productDetails) => {
       throw new Error(`Batch with number ${batchNumber} not found for product ${product.name}`);
     }
 
-    product.batches[batchIndex].quantity -= quantity;
+    if (type === "wholesale") {
+      product.batches[batchIndex].quantity -= quantity * product.conversionRate;
+    } else {
+      product.batches[batchIndex].quantity -= quantity;
+    }
 
     await product.save();
   }
@@ -55,7 +63,10 @@ const updateProductQuantities = async (productDetails) => {
 
 const getTransactions = async (req, res, next) => {
   try {
-    const transactions = await Transaction.find({}).sort("-transactionDate").exec();
+    const transactions = await Transaction.find({})
+      .sort("-transactionDate")
+      .populate("user", "fullname")
+      .exec();
 
     res.status(200).json(transactions);
   } catch (error) {
