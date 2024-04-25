@@ -6,7 +6,7 @@ const requireAuth = async (req, res, next) => {
 
   if (!authorization) {
     try {
-      throw new Error("Authorization token required");
+      throw new Error("Authorization token required. Login to access resource");
     } catch (error) {
       error.statusCode = 401;
       next(error);
