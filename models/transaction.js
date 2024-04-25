@@ -21,6 +21,7 @@ const TransactionSchema = new Schema(
     discount: { type: Number, required: true },
     VAT: { type: Number, required: true },
     status: { type: String, enum: ["pending", "completed", "cancelled"], default: "pending" },
+    user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   },
   { timestamps: true }
 );
